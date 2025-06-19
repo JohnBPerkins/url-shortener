@@ -5,12 +5,12 @@
 - ~~Draft `shortener.proto` with services:~~
   - ~~`Shortener.Shrink( url ) returns ( code )`~~
   - ~~`Shortener.Resolve( code ) returns ( url )`~~
-- Initialize a Terraform workspace with remote state (S3 + DynamoDB lock)
-- Create empty module stubs:  
-  - `modules/network/`  
-  - `modules/database/`  
-  - `modules/cache/`  
-  - `modules/compute/`
+- ~~Initialize a Terraform workspace~~
+- ~~Create empty module stubs:~~
+  - ~~`modules/network/`~~
+  - ~~`modules/database/`~~
+  - ~~`modules/cache/`~~
+  - ~~`modules/compute/`~~
 
 ### Day 2 – gRPC Service Core
 - ~~Generate Go bindings from `shortener.proto`~~
@@ -23,15 +23,10 @@
 ### Day 3 – Resolve & Caching Layer
 - Implement `Resolve` RPC:
   - Check Redis cache → fallback to Postgres
-  - Asynchronously increment click counter
 - Add gRPC unary interceptors for structured logging and basic rate-limiting
 - Stand up a Docker Compose stack: Go service + Postgres + Redis
 
-### Day 4 – Analytics Service & Metrics
-- Implement `Analytics.Stats` RPC:
-  - Total clicks
-  - Time-series histogram (Postgres or Prometheus)
-- (Optional) Add a gRPC streaming endpoint for live click events
+### Day 4 – Metrics
 - Expose Prometheus metrics via a gRPC interceptor
 
 ### Day 5 – Terraform Infra & CI Integration
