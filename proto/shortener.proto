@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package shortener;
+
+option go_package = "github.com/johnbperkins/url-shortener/gen;gen";
+
+message ShrinkRequest {
+	string url = 1;
+}
+message ShrinkResponse {
+	string code = 1;
+}
+
+message ResolveRequest {
+	string code = 1;
+}
+message ResolveResponse {
+	string url = 1;
+}
+
+service Shortener {
+	rpc Shrink (ShrinkRequest) returns (ShrinkResponse);
+	rpc Resolve (ResolveRequest) returns (ResolveResponse);
+}
