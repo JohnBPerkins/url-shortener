@@ -14,8 +14,8 @@
 
 ### Day 2 – gRPC Service Core
 - ~~Generate Go bindings from `shortener.proto`~~
-- Implement `Shrink` RPC:
-  - URL validation
+- ~~Implement `Shrink` RPC:~~
+  - ~~URL validation~~
   - ~~Sonyflake/UUID code generation~~
   - ~~Insert into PostgreSQL~~
 - Write unit tests for collision handling and invalid URLs
