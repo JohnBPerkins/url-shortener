@@ -2,10 +2,9 @@
 ## 7-Day Build Plan
 
 ### Day 1 – Design & Terraform Bootstrap
-- Draft `shortener.proto` with services:
-  - `Shortener.Shrink( url ) returns ( code )`
-  - `Shortener.Resolve( code ) returns ( url )`
-  - `Analytics.Stats( code ) returns ( clicks, histogram )`
+- ~~Draft `shortener.proto` with services:~~
+  - ~~`Shortener.Shrink( url ) returns ( code )`~~
+  - ~~`Shortener.Resolve( code ) returns ( url )`~~
 - Initialize a Terraform workspace with remote state (S3 + DynamoDB lock)
 - Create empty module stubs:  
   - `modules/network/`  
@@ -14,11 +13,11 @@
   - `modules/compute/`
 
 ### Day 2 – gRPC Service Core
-- Generate Go bindings from `shortener.proto`
+- ~~Generate Go bindings from `shortener.proto`~~
 - Implement `Shrink` RPC:
   - URL validation
-  - Sonyflake/UUID code generation
-  - Insert into PostgreSQL
+  - ~~Sonyflake/UUID code generation~~
+  - ~~Insert into PostgreSQL~~
 - Write unit tests for collision handling and invalid URLs
 
 ### Day 3 – Resolve & Caching Layer
