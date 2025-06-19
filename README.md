@@ -2,10 +2,9 @@
 ## 7-Day Build Plan
 
 ### Day 1 – Design & Terraform Bootstrap
-- Draft `shortener.proto` with services:
+- ~~Draft `shortener.proto` with services:~~
   - ~~`Shortener.Shrink( url ) returns ( code )`~~
   - ~~`Shortener.Resolve( code ) returns ( url )`~~
-  - `Analytics.Stats( code ) returns ( clicks, histogram )`
 - Initialize a Terraform workspace with remote state (S3 + DynamoDB lock)
 - Create empty module stubs:  
   - `modules/network/`  
