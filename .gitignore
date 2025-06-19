@@ -1,0 +1,5 @@
+# Local Terraform directories and state files
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+#*.tfvars       # if they contain secrets
