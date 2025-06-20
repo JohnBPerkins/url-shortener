@@ -21,13 +21,13 @@
 - Write unit tests for collision handling and invalid URLs
 
 ### Day 3 – Resolve & Caching Layer
-- Implement `Resolve` RPC:
-  - Check Redis cache → fallback to Postgres
+- ~~Implement `Resolve` RPC:~~
+  - ~~Check Redis cache → fallback to Postgres~~
 - Add gRPC unary interceptors for structured logging and basic rate-limiting
 - Stand up a Docker Compose stack: Go service + Postgres + Redis
 
 ### Day 4 – Metrics
-- Expose Prometheus metrics via a gRPC interceptor
+- ~~Expose Prometheus metrics via a gRPC interceptor~~
 
 ### Day 5 – Terraform Infra & CI Integration
 - Flesh out Terraform modules:
