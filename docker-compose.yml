@@ -28,7 +28,6 @@ services:
       SONYFLAKE_MACHINE_ID: "1"
     ports:
       - "50051:50051"
-    # If you expose Prometheus metrics on :9090, uncomment:
-    # - "9090:9090"
+      - "9090:9090"
 volumes:
   pgdata:
