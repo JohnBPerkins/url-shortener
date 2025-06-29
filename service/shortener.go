@@ -3,17 +3,18 @@ package service
 import (
 	"context"
 	"errors"
-	"net/url"
-	"strings"
+	"regexp"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/JohnBPerkins/url-shortener/gen"
 	"github.com/JohnBPerkins/url-shortener/modules/db"
+	"github.com/sony/sonyflake"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
-	"github.com/sony/sonyflake"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )	
@@ -25,6 +26,16 @@ const (
 	base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 )
 
+var urlRegex = regexp.MustCompile(`(?i)^` +             // case‐insensitive
+    `(?:https?://)?` +                                  // optional http:// or https://
+    `[A-Za-z0-9]` +                                     // label start
+    `(?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?` +              // label body
+    `(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*` + // dot‐separated labels
+    `\.[A-Za-z]{2,6}` +                                 // TLD
+    `(?::\d{1,5})?` +                                   // optional port
+    `(?:[/?#][^\s]*)?` +                                // optional path/query/fragment
+    `$`)
+
 type ShortenerService struct {
 	gen.UnimplementedShortenerServer
 	dbPool *db.Pool
@@ -32,7 +43,7 @@ type ShortenerService struct {
 	flake *sonyflake.Sonyflake
 }
 
-func newShortenerService(dbPool *db.Pool, cache *redis.Client ,flake *sonyflake.Sonyflake) gen.ShortenerServer {
+func NewShortenerService(dbPool *db.Pool, cache *redis.Client, flake *sonyflake.Sonyflake) gen.ShortenerServer {
 	return &ShortenerService{dbPool: dbPool, cache: cache, flake: flake}
 }
 
@@ -71,22 +82,13 @@ func isValidURL(candidate string) bool {
         return false
     }
 
-    raw := candidate
-    if !strings.HasPrefix(candidate, "http://") && !strings.HasPrefix(candidate, "https://") {
-        raw = "http://" + candidate
+    for _, r := range candidate {
+        if r > unicode.MaxASCII || r == utf8.RuneError || r < 32 {
+            return false
+        }
     }
 
-    u, err := url.ParseRequestURI(raw)
-    if err != nil {
-        return false
-    }
-    if u.Scheme != "http" && u.Scheme != "https" {
-        return false
-    }
-    if u.Host == "" {
-        return false
-    }
-    return true
+    return urlRegex.MatchString(candidate)
 }
 
 func isUniqueViolation(err error) bool {
