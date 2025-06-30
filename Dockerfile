@@ -14,7 +14,9 @@ FROM alpine:3.18
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=builder /app/shortener .
+COPY --from=builder /app/internal/web ./web/
 RUN chmod +x /app/shortener
 
 EXPOSE 50051
+EXPOSE 8080
 ENTRYPOINT ["./shortener"]
