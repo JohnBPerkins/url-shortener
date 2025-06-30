@@ -311,10 +311,9 @@
     </main>
 
     <script>
-        // Configuration - Update these URLs as needed
         const CONFIG = {
-            apiEndpoint: '/api/shorten', // Your Go API endpoint
-            githubUrl: 'https://github.com/JohnBPerkins/url-shortener', // Update with your GitHub repo
+            apiEndpoint: '/api/shorten',
+            githubUrl: 'https://github.com/JohnBPerkins/url-shortener',
         };
 
         // Set navigation links
@@ -352,7 +351,7 @@
                 
                 if (response.ok) {
                     // Success
-                    document.getElementById('shortened-url').textContent = data.shortened_url || data.short_url || data.url;
+                    document.getElementById('shortened-url').textContent = window.location.origin + data.code;
                     resultDiv.classList.add('show');
                 } else {
                     // Error from API
