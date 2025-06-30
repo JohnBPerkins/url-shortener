@@ -47,7 +47,7 @@ func NewShortenerService(dbPool *db.Pool, cache *redis.Client, flake *sonyflake.
 	return &ShortenerService{dbPool: dbPool, cache: cache, flake: flake}
 }
 
-func (s *ShortenerService) Shrink(ctx context.Context, req *gen.ShrinkRequest) (*gen.ShrinkResponse, error) {
+func (s *ShortenerService) Shrink(ctx context.Context, req *gen.ShortenRequest) (*gen.ShortenResponse, error) {
 	if !isValidURL(req.GetUrl()) {
         return nil, status.Errorf(codes.InvalidArgument, "invalid URL: %q", req.GetUrl())
     }
@@ -65,7 +65,7 @@ func (s *ShortenerService) Shrink(ctx context.Context, req *gen.ShrinkRequest) (
 		)
 		if err == nil {
 			if err := s.cache.Set(ctx, code, req.GetUrl(), 24*time.Hour).Err(); err != nil {}
-			return &gen.ShrinkResponse{Code: code}, nil
+			return &gen.ShortenResponse{Code: code}, nil
 		}
 		if isUniqueViolation(err) {
             continue
