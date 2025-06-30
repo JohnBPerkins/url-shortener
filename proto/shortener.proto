@@ -4,10 +4,10 @@ package shortener;
 
 option go_package = "github.com/johnbperkins/url-shortener/gen;gen";
 
-message ShrinkRequest {
+message ShortenRequest {
 	string url = 1;
 }
-message ShrinkResponse {
+message ShortenResponse {
 	string code = 1;
 }
 
@@ -19,6 +19,6 @@ message ResolveResponse {
 }
 
 service Shortener {
-	rpc Shrink (ShrinkRequest) returns (ShrinkResponse);
+	rpc Shrink (ShortenRequest) returns (ShortenResponse);
 	rpc Resolve (ResolveRequest) returns (ResolveResponse);
 }

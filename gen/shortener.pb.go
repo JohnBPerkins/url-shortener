@@ -21,27 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ShrinkRequest struct {
+type ShortenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ShrinkRequest) Reset() {
-	*x = ShrinkRequest{}
+func (x *ShortenRequest) Reset() {
+	*x = ShortenRequest{}
 	mi := &file_shortener_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ShrinkRequest) String() string {
+func (x *ShortenRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ShrinkRequest) ProtoMessage() {}
+func (*ShortenRequest) ProtoMessage() {}
 
-func (x *ShrinkRequest) ProtoReflect() protoreflect.Message {
+func (x *ShortenRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_shortener_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,39 +53,39 @@ func (x *ShrinkRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ShrinkRequest.ProtoReflect.Descriptor instead.
-func (*ShrinkRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ShortenRequest.ProtoReflect.Descriptor instead.
+func (*ShortenRequest) Descriptor() ([]byte, []int) {
 	return file_shortener_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ShrinkRequest) GetUrl() string {
+func (x *ShortenRequest) GetUrl() string {
 	if x != nil {
 		return x.Url
 	}
 	return ""
 }
 
-type ShrinkResponse struct {
+type ShortenResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ShrinkResponse) Reset() {
-	*x = ShrinkResponse{}
+func (x *ShortenResponse) Reset() {
+	*x = ShortenResponse{}
 	mi := &file_shortener_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ShrinkResponse) String() string {
+func (x *ShortenResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ShrinkResponse) ProtoMessage() {}
+func (*ShortenResponse) ProtoMessage() {}
 
-func (x *ShrinkResponse) ProtoReflect() protoreflect.Message {
+func (x *ShortenResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_shortener_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -97,12 +97,12 @@ func (x *ShrinkResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ShrinkResponse.ProtoReflect.Descriptor instead.
-func (*ShrinkResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ShortenResponse.ProtoReflect.Descriptor instead.
+func (*ShortenResponse) Descriptor() ([]byte, []int) {
 	return file_shortener_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ShrinkResponse) GetCode() string {
+func (x *ShortenResponse) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
@@ -201,18 +201,18 @@ var File_shortener_proto protoreflect.FileDescriptor
 
 const file_shortener_proto_rawDesc = "" +
 	"\n" +
-	"\x0fshortener.proto\x12\tshortener\"!\n" +
-	"\rShrinkRequest\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\"$\n" +
-	"\x0eShrinkResponse\x12\x12\n" +
+	"\x0fshortener.proto\x12\tshortener\"\"\n" +
+	"\x0eShortenRequest\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\"%\n" +
+	"\x0fShortenResponse\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\"$\n" +
 	"\x0eResolveRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\"#\n" +
 	"\x0fResolveResponse\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url2\x8c\x01\n" +
-	"\tShortener\x12@\n" +
-	"\aResolve\x12\x19.shortener.ResolveRequest\x1a\x1a.shortener.ResolveResponse\x12=\n" +
-	"\x06Shrink\x12\x18.shortener.ShrinkRequest\x1a\x19.shortener.ShrinkResponseB/Z-github.com/johnbperkins/url-shortener/gen;genb\x06proto3"
+	"\x03url\x18\x01 \x01(\tR\x03url2\x8e\x01\n" +
+	"\tShortener\x12?\n" +
+	"\x06Shrink\x12\x19.shortener.ShortenRequest\x1a\x1a.shortener.ShortenResponse\x12@\n" +
+	"\aResolve\x12\x19.shortener.ResolveRequest\x1a\x1a.shortener.ResolveResponseB/Z-github.com/johnbperkins/url-shortener/gen;genb\x06proto3"
 
 var (
 	file_shortener_proto_rawDescOnce sync.Once
@@ -228,16 +228,16 @@ func file_shortener_proto_rawDescGZIP() []byte {
 
 var file_shortener_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_shortener_proto_goTypes = []any{
-	(*ShrinkRequest)(nil),   // 0: shortener.ShrinkRequest
-	(*ShrinkResponse)(nil),  // 1: shortener.ShrinkResponse
+	(*ShortenRequest)(nil),  // 0: shortener.ShortenRequest
+	(*ShortenResponse)(nil), // 1: shortener.ShortenResponse
 	(*ResolveRequest)(nil),  // 2: shortener.ResolveRequest
 	(*ResolveResponse)(nil), // 3: shortener.ResolveResponse
 }
 var file_shortener_proto_depIdxs = []int32{
-	2, // 0: shortener.Shortener.Resolve:input_type -> shortener.ResolveRequest
-	0, // 1: shortener.Shortener.Shrink:input_type -> shortener.ShrinkRequest
-	3, // 2: shortener.Shortener.Resolve:output_type -> shortener.ResolveResponse
-	1, // 3: shortener.Shortener.Shrink:output_type -> shortener.ShrinkResponse
+	0, // 0: shortener.Shortener.Shrink:input_type -> shortener.ShortenRequest
+	2, // 1: shortener.Shortener.Resolve:input_type -> shortener.ResolveRequest
+	1, // 2: shortener.Shortener.Shrink:output_type -> shortener.ShortenResponse
+	3, // 3: shortener.Shortener.Resolve:output_type -> shortener.ResolveResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
