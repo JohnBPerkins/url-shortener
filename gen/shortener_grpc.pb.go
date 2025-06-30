@@ -19,16 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Shortener_Resolve_FullMethodName = "/shortener.Shortener/Resolve"
 	Shortener_Shrink_FullMethodName  = "/shortener.Shortener/Shrink"
+	Shortener_Resolve_FullMethodName = "/shortener.Shortener/Resolve"
 )
 
 // ShortenerClient is the client API for Shortener service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShortenerClient interface {
+	Shrink(ctx context.Context, in *ShortenRequest, opts ...grpc.CallOption) (*ShortenResponse, error)
 	Resolve(ctx context.Context, in *ResolveRequest, opts ...grpc.CallOption) (*ResolveResponse, error)
-	Shrink(ctx context.Context, in *ShrinkRequest, opts ...grpc.CallOption) (*ShrinkResponse, error)
 }
 
 type shortenerClient struct {
@@ -37,6 +37,16 @@ type shortenerClient struct {
 
 func NewShortenerClient(cc grpc.ClientConnInterface) ShortenerClient {
 	return &shortenerClient{cc}
+}
+
+func (c *shortenerClient) Shrink(ctx context.Context, in *ShortenRequest, opts ...grpc.CallOption) (*ShortenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ShortenResponse)
+	err := c.cc.Invoke(ctx, Shortener_Shrink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *shortenerClient) Resolve(ctx context.Context, in *ResolveRequest, opts ...grpc.CallOption) (*ResolveResponse, error) {
@@ -49,22 +59,12 @@ func (c *shortenerClient) Resolve(ctx context.Context, in *ResolveRequest, opts 
 	return out, nil
 }
 
-func (c *shortenerClient) Shrink(ctx context.Context, in *ShrinkRequest, opts ...grpc.CallOption) (*ShrinkResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ShrinkResponse)
-	err := c.cc.Invoke(ctx, Shortener_Shrink_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ShortenerServer is the server API for Shortener service.
 // All implementations must embed UnimplementedShortenerServer
 // for forward compatibility.
 type ShortenerServer interface {
+	Shrink(context.Context, *ShortenRequest) (*ShortenResponse, error)
 	Resolve(context.Context, *ResolveRequest) (*ResolveResponse, error)
-	Shrink(context.Context, *ShrinkRequest) (*ShrinkResponse, error)
 	mustEmbedUnimplementedShortenerServer()
 }
 
@@ -75,11 +75,11 @@ type ShortenerServer interface {
 // pointer dereference when methods are called.
 type UnimplementedShortenerServer struct{}
 
+func (UnimplementedShortenerServer) Shrink(context.Context, *ShortenRequest) (*ShortenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Shrink not implemented")
+}
 func (UnimplementedShortenerServer) Resolve(context.Context, *ResolveRequest) (*ResolveResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Resolve not implemented")
-}
-func (UnimplementedShortenerServer) Shrink(context.Context, *ShrinkRequest) (*ShrinkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Shrink not implemented")
 }
 func (UnimplementedShortenerServer) mustEmbedUnimplementedShortenerServer() {}
 func (UnimplementedShortenerServer) testEmbeddedByValue()                   {}
@@ -102,6 +102,24 @@ func RegisterShortenerServer(s grpc.ServiceRegistrar, srv ShortenerServer) {
 	s.RegisterService(&Shortener_ServiceDesc, srv)
 }
 
+func _Shortener_Shrink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ShortenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShortenerServer).Shrink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Shortener_Shrink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShortenerServer).Shrink(ctx, req.(*ShortenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Shortener_Resolve_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResolveRequest)
 	if err := dec(in); err != nil {
@@ -120,24 +138,6 @@ func _Shortener_Resolve_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Shortener_Shrink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ShrinkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ShortenerServer).Shrink(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Shortener_Shrink_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortenerServer).Shrink(ctx, req.(*ShrinkRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Shortener_ServiceDesc is the grpc.ServiceDesc for Shortener service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -146,12 +146,12 @@ var Shortener_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ShortenerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Resolve",
-			Handler:    _Shortener_Resolve_Handler,
-		},
-		{
 			MethodName: "Shrink",
 			Handler:    _Shortener_Shrink_Handler,
+		},
+		{
+			MethodName: "Resolve",
+			Handler:    _Shortener_Resolve_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
