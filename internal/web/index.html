@@ -64,9 +64,10 @@
         .main-content {
             flex: 1;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             padding: 2rem;
+            gap: 2rem;
         }
 
         .container {
@@ -225,6 +226,68 @@
             animation: slideIn 0.5s ease;
         }
 
+        /* Metrics Section Styles */
+        .metrics-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1400px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .metrics-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metrics-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grafana-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e1e5e9;
+        }
+
+        .grafana-panel iframe {
+            border-radius: 8px;
+            border: none;
+            width: 100%;
+            height: 300px;
+        }
+
+        .grafana-panel.stat iframe {
+            height: 200px;
+        }
+
+        @media (max-width: 1200px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -241,14 +304,35 @@
                 padding: 2rem;
             }
 
+            .metrics-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
             .title {
                 font-size: 2rem;
+            }
+
+            .metrics-title {
+                font-size: 1.5rem;
             }
 
             .result-url {
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.5rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .grafana-panel {
+                min-width: 0;
             }
         }
     </style>
@@ -295,18 +379,48 @@
             </div>
 
             <div id="error" class="error"></div>
+        </div>
 
-            <section class="metrics-section">
-                <h2 class="subtitle">Live Metrics</h2>
+        <div class="metrics-container">
+            <h2 class="metrics-title">Live Metrics Dashboard</h2>
+            
+            <!-- Time Series Charts -->
+            <div class="metrics-grid">
                 <div class="grafana-panel">
-                    <iframe
-                    src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-6h&to=now&timezone=browser&panelId=1&__feature.dashboardSceneSolo"
-                    frameborder="0"
-                    width="100%"
-                    height="400"
-                    ></iframe>
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=1&refresh=5s"></iframe>
                 </div>
-            </section>
+                
+                <div class="grafana-panel">
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=2&refresh=5s"></iframe>
+                </div>
+                
+                <div class="grafana-panel">
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=3&refresh=5s"></iframe>
+                </div>
+                
+                <div class="grafana-panel">
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=4&refresh=5s"></iframe>
+                </div>
+            </div>
+
+            <!-- Statistics Panels -->
+            <div class="metrics-stats">
+                <div class="grafana-panel stat">
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=5&refresh=5s"></iframe>
+                </div>
+                
+                <div class="grafana-panel stat">
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=6&refresh=5s"></iframe>
+                </div>
+                
+                <div class="grafana-panel stat">
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=7&refresh=5s"></iframe>
+                </div>
+                
+                <div class="grafana-panel stat">
+                    <iframe src="http://localhost:3000/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/metrics?orgId=1&from=now-1h&to=now&timezone=browser&panelId=8&refresh=5s"></iframe>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -350,26 +464,21 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Success
-                    document.getElementById('shortened-url').textContent = window.location.origin + data.code;
+                    document.getElementById('shortened-url').textContent = window.location.origin + '/' + data.code;
                     resultDiv.classList.add('show');
                 } else {
-                    // Error from API
                     throw new Error(data.error || 'Failed to shorten URL');
                 }
                 
             } catch (error) {
-                // Handle errors
                 errorDiv.textContent = 'Error: ' + error.message;
                 errorDiv.classList.add('show');
             } finally {
-                // Reset button
                 submitBtn.textContent = 'Shorten URL';
                 submitBtn.disabled = false;
             }
         });
 
-        // Copy to clipboard function
         function copyToClipboard() {
             const shortenedUrl = document.getElementById('shortened-url').textContent;
             navigator.clipboard.writeText(shortenedUrl).then(function() {
@@ -393,23 +502,6 @@
                 document.body.removeChild(textArea);
             });
         }
-
-        // Add some interactive effects
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add floating animation to the container
-            const container = document.querySelector('.container');
-            let isFloating = false;
-            
-            setInterval(() => {
-                if (!isFloating) {
-                    container.style.transform = 'translateY(-5px)';
-                    isFloating = true;
-                } else {
-                    container.style.transform = 'translateY(0px)';
-                    isFloating = false;
-                }
-            }, 3000);
-        });
     </script>
 </body>
 </html>
