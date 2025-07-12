@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
 	"regexp"
 	"time"
 	"unicode"
@@ -17,6 +18,8 @@ import (
 	"github.com/jackc/pgx/v4"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/prometheus/client_golang/prometheus"
 )	
 
 const (
@@ -42,6 +45,38 @@ type ShortenerService struct {
 	cache *redis.Client
 	flake *sonyflake.Sonyflake
 }
+
+var (
+    ResolveHits = prometheus.NewCounter(
+        prometheus.CounterOpts{
+            Namespace: "url_shortener",
+            Name:      "resolve_cache_hits_total",
+            Help:      "Total number of cache hits in Resolve().",
+        },
+    )
+    ResolveMisses = prometheus.NewCounter(
+        prometheus.CounterOpts{
+            Namespace: "url_shortener",
+            Name:      "resolve_cache_misses_total",
+            Help:      "Total number of cache misses in Resolve().",
+        },
+    )
+    ResolveErrors = prometheus.NewCounter(
+        prometheus.CounterOpts{
+            Namespace: "url_shortener",
+            Name:      "resolve_cache_errors_total",
+            Help:      "Total number of unexpected cache errors in Resolve().",
+        },
+    )
+    ResolveDuration = prometheus.NewHistogram(
+        prometheus.HistogramOpts{
+            Namespace: "url_shortener",
+            Name:      "resolve_duration_seconds",
+            Help:      "Histogram of latencies for Resolve() rpc.",
+            Buckets:   prometheus.DefBuckets,
+        },
+    )
+)
 
 func NewShortenerService(dbPool *db.Pool, cache *redis.Client, flake *sonyflake.Sonyflake) gen.ShortenerServer {
 	return &ShortenerService{dbPool: dbPool, cache: cache, flake: flake}
@@ -73,6 +108,7 @@ func (s *ShortenerService) Shrink(ctx context.Context, req *gen.ShortenRequest) 
 		return nil, status.Errorf(codes.Internal, "db insert failed: %v", err)
 	}
 
+    
 	return nil, status.Errorf(codes.Internal,
         "could not generate a unique code after %d attempts", maxAttempts)
 }
@@ -132,11 +168,16 @@ func (s *ShortenerService) Resolve(ctx context.Context, req *gen.ResolveRequest)
 	
 	urlStr, err := s.cache.Get(ctx, code).Result()
     if err == nil {
+        log.Printf("[INFO] Cache hit")
+        ResolveHits.Inc()
         return &gen.ResolveResponse{Url: urlStr}, nil
     }
     if err != redis.Nil {
+        ResolveErrors.Inc()
         return nil, status.Errorf(codes.Internal, "cache lookup failed: %v", err)
     }
+    log.Printf("[INFO] Cache miss")
+    ResolveMisses.Inc()
 
 	var dbURL string
     err = s.dbPool.QueryRow(ctx,
@@ -149,7 +190,9 @@ func (s *ShortenerService) Resolve(ctx context.Context, req *gen.ResolveRequest)
         return nil, status.Errorf(codes.Internal, "db query failed: %v", err)
     }
 
-	if err := s.cache.Set(ctx, code, dbURL, 24*time.Hour).Err(); err != nil {}
+	if err := s.cache.Set(ctx, code, dbURL, 24*time.Hour).Err(); err != nil {
+        log.Printf("warning: redis SET failed: %v", err)
+    }
 	
     return &gen.ResolveResponse{Url: dbURL}, nil
 }
