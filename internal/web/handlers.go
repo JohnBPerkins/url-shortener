@@ -36,20 +36,26 @@ func NewShrinkHandler(svc pb.ShortenerServer) http.HandlerFunc {
 		
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			json.NewEncoder(w).Encode(ErrorResponse{Error: "Method not allowed"})
+			if encodeErr := json.NewEncoder(w).Encode(ErrorResponse{Error: "Method not allowed"}); encodeErr != nil {
+				log.Printf("handlers.go: failed to write 405 JSON: %v", encodeErr)
+			}
 			return
 		}
 
 		var req ShortenRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		if decodeErr := json.NewDecoder(r.Body).Decode(&req); decodeErr != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(ErrorResponse{Error: "Invalid JSON"})
+			if encodeErr := json.NewEncoder(w).Encode(ErrorResponse{Error: "Invalid JSON"}); encodeErr != nil {
+				log.Printf("handlers.go: failed to write 400 JSON: %v", encodeErr)
+			}
 			return
 		}
 
 		if req.URL == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(ErrorResponse{Error: "URL is required"})
+			if encodeErr := json.NewEncoder(w).Encode(ErrorResponse{Error: "URL is required"}); encodeErr != nil {
+				log.Printf("handlers.go: failed to write 400 JSON: %v", encodeErr)
+			}
 			return
 		}
 
@@ -57,14 +63,19 @@ func NewShrinkHandler(svc pb.ShortenerServer) http.HandlerFunc {
         grpcResp, err := svc.Shrink(r.Context(), grpcReq)
         if err != nil {
             w.WriteHeader(http.StatusInternalServerError)
-            json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
+            if encodeErr := json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()}); encodeErr != nil {
+				log.Printf("handlers.go: failed to write 500 JSON: %v", encodeErr)
+			}
             return
         }
 
         w.WriteHeader(http.StatusOK)
-        json.NewEncoder(w).Encode(ShortenResponse{
+        encodeErr := json.NewEncoder(w).Encode(ShortenResponse{
             Code: grpcResp.GetCode(),
         })
+		if encodeErr != nil {
+			log.Printf("handlers.go: failed to write 200 JSON: %v", encodeErr)
+		}
 	}
 }
 
