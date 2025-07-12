@@ -1,39 +1,14 @@
 # url-shortener
-## 7-Day Build Plan
-
-### Day 1 – Design & Terraform Bootstrap
-- ~~Draft `shortener.proto` with services:~~
-  - ~~`Shortener.Shrink( url ) returns ( code )`~~
-  - ~~`Shortener.Resolve( code ) returns ( url )`~~
-- ~~Initialize a Terraform workspace~~
-- ~~Create empty module stubs:~~
-  - ~~`modules/network/`~~
-  - ~~`modules/database/`~~
-  - ~~`modules/cache/`~~
-  - ~~`modules/compute/`~~
-
-### Day 2 – gRPC Service Core
-- ~~Generate Go bindings from `shortener.proto`~~
-- ~~Implement `Shrink` RPC:~~
-  - ~~URL validation~~
-  - ~~Sonyflake/UUID code generation~~
-  - ~~Insert into PostgreSQL~~
-- Write unit tests for collision handling and invalid URLs
+## Build Plan
 
 ### Day 3 – Resolve & Caching Layer
-- ~~Implement `Resolve` RPC:~~
-  - ~~Check Redis cache → fallback to Postgres~~
 - Add gRPC unary interceptors for structured logging and basic rate-limiting
-- Stand up a Docker Compose stack: Go service + Postgres + Redis
-
-### Day 4 – Metrics
-- ~~Expose Prometheus metrics via a gRPC interceptor~~
 
 ### Day 5 – Terraform Infra & CI Integration
 - Flesh out Terraform modules:
   - **network**: VPC, subnets, security groups  
   - **database**: RDS Postgres  
-  - **cache**: ElastiCache Redis  
+  - **cache**: ElastiCache Redis
   - **compute**: ECS cluster, task definitions, IAM roles  
 - Add GitHub Actions steps:
   1. `terraform fmt` → `terraform plan` (manual approval) → `terraform apply`
