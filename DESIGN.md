@@ -18,7 +18,7 @@
 
 ### 2.2 URL Generation & Collision Handling
 
-I opted for a hash + salting system to generate codes for the URLs. Each URL becomes an 6 character Base62 encoded string, giving about 56.8 billion unique combinations. Codes have to be unique, so in the event that a collision occurs the code is regenerated with a different salt, ensuring each URL is able to generate a unique code. Users must specify a TTL for their shortened URL of 1 hour, 24 hours, or 168 hours (1 week). 
+I opted for a hash + salting system to generate codes for the URLs. Each URL becomes an 8 character Base62 encoded string, giving about 218 trillion unique combinations. Codes have to be unique, so in the event that a collision occurs the code is regenerated with a different salt, ensuring each URL is able to generate a unique code. Users must specify a TTL for their shortened URL of 1 hour, 24 hours, or 168 hours (1 week). 
 
 ## 3. API Design
 
@@ -26,8 +26,12 @@ I opted for a hash + salting system to generate codes for the URLs. Each URL bec
 
 | Method | Path            | Resp            | Notes       |
 | ------ | --------------- | --------------- | ----------- |
+|  POST  |    /shorten     |
+|  GET   |        /        |
 
 ### 3.2 Internal gRPC Services
+
+
 
 ## 4. Data Model
 
