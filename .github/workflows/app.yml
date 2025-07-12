@@ -56,7 +56,7 @@ jobs:
 
       - name: Bring up Docker Compose services
         run: |
-          docker compose up -d
+          docker compose up -d --wait
 
       - name: Run integration tests
         env:
