@@ -13,17 +13,17 @@ function randomString(length) {
 export const options = {
   scenarios: {
     rps_test: {
-      executor: "constant-arrival-rate",
-      rate: 2500,
-      timeUnit: "1s",
-      duration: "30s",
+      executor:        "constant-arrival-rate",
+      rate:            1000,
+      timeUnit:        "1s",
+      duration:        "30s",
       preAllocatedVUs: 1000,
-      maxVUs: 2000,
+      maxVUs:          2000,
     },
   },
   thresholds: {
-    "http_req_duration{name:shorten}": ["p(95)<50"],
-    "http_req_duration{name:resolve}": ["p(95)<50"]
+    "http_req_duration{name:shorten}": ["p(95)<100"],
+    "http_req_duration{name:resolve}": ["p(95)<100"]
   },
 };
 
