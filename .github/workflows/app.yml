@@ -63,7 +63,7 @@ jobs:
           GF_SECURITY_ADMIN_USER: ${{secrets.GF_SECURITY_ADMIN_USER}}
           GF_SECURITY_ADMIN_PASSWORD: ${{secrets.GF_SECURITY_ADMIN_PASSWORD}}
         run: |
-          docker compose --env-file .env up -d --wait
+          docker compose up -d --wait
 
       - name: Dump Postgres logs on failure
         if: ${{ failure() }}
