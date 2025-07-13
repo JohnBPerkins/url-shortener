@@ -59,7 +59,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker compose build app
-          docker tag url-shortener_app:latest $DOCKERHUB_REPO:$IMAGE_TAG
+          docker tag url-shortener-app:latest $DOCKERHUB_REPO:$IMAGE_TAG
 
       - name: Bring up Docker Compose services
         env:
