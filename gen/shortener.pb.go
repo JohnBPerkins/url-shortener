@@ -209,9 +209,9 @@ const file_shortener_proto_rawDesc = "" +
 	"\x0eResolveRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\"#\n" +
 	"\x0fResolveResponse\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url2\x8e\x01\n" +
-	"\tShortener\x12?\n" +
-	"\x06Shrink\x12\x19.shortener.ShortenRequest\x1a\x1a.shortener.ShortenResponse\x12@\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url2\x8f\x01\n" +
+	"\tShortener\x12@\n" +
+	"\aShorten\x12\x19.shortener.ShortenRequest\x1a\x1a.shortener.ShortenResponse\x12@\n" +
 	"\aResolve\x12\x19.shortener.ResolveRequest\x1a\x1a.shortener.ResolveResponseB/Z-github.com/johnbperkins/url-shortener/gen;genb\x06proto3"
 
 var (
@@ -234,9 +234,9 @@ var file_shortener_proto_goTypes = []any{
 	(*ResolveResponse)(nil), // 3: shortener.ResolveResponse
 }
 var file_shortener_proto_depIdxs = []int32{
-	0, // 0: shortener.Shortener.Shrink:input_type -> shortener.ShortenRequest
+	0, // 0: shortener.Shortener.Shorten:input_type -> shortener.ShortenRequest
 	2, // 1: shortener.Shortener.Resolve:input_type -> shortener.ResolveRequest
-	1, // 2: shortener.Shortener.Shrink:output_type -> shortener.ShortenResponse
+	1, // 2: shortener.Shortener.Shorten:output_type -> shortener.ShortenResponse
 	3, // 3: shortener.Shortener.Resolve:output_type -> shortener.ResolveResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
