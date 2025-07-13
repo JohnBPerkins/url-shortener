@@ -64,6 +64,15 @@ jobs:
         run: |
           docker compose up -d --wait
 
+      - name: Dump Postgres logs on failure
+        if: ${{ failure() }}
+        run: |
+          echo "=== Compose ps ==="
+          docker compose ps
+          echo
+          echo "=== Postgres logs ==="
+          docker compose logs db
+
       - name: Run integration tests
         env:
           DATABASE_DSN: postgres://shortener:password123@localhost:5432/shortener?sslmode=disable
