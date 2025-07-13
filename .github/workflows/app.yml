@@ -9,6 +9,12 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER:      ${{secrets.POSTGRES_USER}}
+      POSTGRES_PASSWORD:  ${{secrets.POSTGRES_PASSWORD}}
+      POSTGRES_DB:        ${{secrets.POSTGRES_DB}}
+      GF_SECURITY_ADMIN_USER: ${{secrets.GF_SECURITY_ADMIN_USER}}
+      GF_SECURITY_ADMIN_PASSWORD: ${{secrets.GF_SECURITY_ADMIN_PASSWORD}}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
