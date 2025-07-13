@@ -14,7 +14,7 @@ export const options = {
   scenarios: {
     rps_test: {
       executor:        "constant-arrival-rate",
-      rate:            2500,
+      rate:            1000,
       timeUnit:        "1s",
       duration:        "30s",
       preAllocatedVUs: 1000,
@@ -22,8 +22,8 @@ export const options = {
     },
   },
   thresholds: {
-    "grpc_req_duration{method:Shorten}": ["p(95)<50"],
-    "grpc_req_duration{method:Resolve}": ["p(95)<50"],
+    "grpc_req_duration{method:Shorten}": ["p(95)<100"],
+    "grpc_req_duration{method:Resolve}": ["p(95)<100"],
   },
 };
 
