@@ -82,7 +82,7 @@ func NewShortenerService(dbPool *db.Pool, cache *redis.Client, flake *sonyflake.
 	return &ShortenerService{dbPool: dbPool, cache: cache, flake: flake}
 }
 
-func (s *ShortenerService) Shrink(ctx context.Context, req *gen.ShortenRequest) (*gen.ShortenResponse, error) {
+func (s *ShortenerService) Shorten(ctx context.Context, req *gen.ShortenRequest) (*gen.ShortenResponse, error) {
 	if !isValidURL(req.GetUrl()) {
         return nil, status.Errorf(codes.InvalidArgument, "invalid URL: %q", req.GetUrl())
     }
