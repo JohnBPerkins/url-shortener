@@ -60,7 +60,7 @@ func NewShrinkHandler(svc pb.ShortenerServer) http.HandlerFunc {
 		}
 
         grpcReq := &pb.ShortenRequest{Url: req.URL}
-        grpcResp, err := svc.Shrink(r.Context(), grpcReq)
+        grpcResp, err := svc.Shorten(r.Context(), grpcReq)
         if err != nil {
             w.WriteHeader(http.StatusInternalServerError)
             if encodeErr := json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()}); encodeErr != nil {

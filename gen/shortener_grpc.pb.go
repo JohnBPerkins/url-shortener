@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Shortener_Shrink_FullMethodName  = "/shortener.Shortener/Shrink"
+	Shortener_Shorten_FullMethodName = "/shortener.Shortener/Shorten"
 	Shortener_Resolve_FullMethodName = "/shortener.Shortener/Resolve"
 )
 
@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShortenerClient interface {
-	Shrink(ctx context.Context, in *ShortenRequest, opts ...grpc.CallOption) (*ShortenResponse, error)
+	Shorten(ctx context.Context, in *ShortenRequest, opts ...grpc.CallOption) (*ShortenResponse, error)
 	Resolve(ctx context.Context, in *ResolveRequest, opts ...grpc.CallOption) (*ResolveResponse, error)
 }
 
@@ -39,10 +39,10 @@ func NewShortenerClient(cc grpc.ClientConnInterface) ShortenerClient {
 	return &shortenerClient{cc}
 }
 
-func (c *shortenerClient) Shrink(ctx context.Context, in *ShortenRequest, opts ...grpc.CallOption) (*ShortenResponse, error) {
+func (c *shortenerClient) Shorten(ctx context.Context, in *ShortenRequest, opts ...grpc.CallOption) (*ShortenResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ShortenResponse)
-	err := c.cc.Invoke(ctx, Shortener_Shrink_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, Shortener_Shorten_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (c *shortenerClient) Resolve(ctx context.Context, in *ResolveRequest, opts 
 // All implementations must embed UnimplementedShortenerServer
 // for forward compatibility.
 type ShortenerServer interface {
-	Shrink(context.Context, *ShortenRequest) (*ShortenResponse, error)
+	Shorten(context.Context, *ShortenRequest) (*ShortenResponse, error)
 	Resolve(context.Context, *ResolveRequest) (*ResolveResponse, error)
 	mustEmbedUnimplementedShortenerServer()
 }
@@ -75,8 +75,8 @@ type ShortenerServer interface {
 // pointer dereference when methods are called.
 type UnimplementedShortenerServer struct{}
 
-func (UnimplementedShortenerServer) Shrink(context.Context, *ShortenRequest) (*ShortenResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Shrink not implemented")
+func (UnimplementedShortenerServer) Shorten(context.Context, *ShortenRequest) (*ShortenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Shorten not implemented")
 }
 func (UnimplementedShortenerServer) Resolve(context.Context, *ResolveRequest) (*ResolveResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Resolve not implemented")
@@ -102,20 +102,20 @@ func RegisterShortenerServer(s grpc.ServiceRegistrar, srv ShortenerServer) {
 	s.RegisterService(&Shortener_ServiceDesc, srv)
 }
 
-func _Shortener_Shrink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Shortener_Shorten_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ShortenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortenerServer).Shrink(ctx, in)
+		return srv.(ShortenerServer).Shorten(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Shortener_Shrink_FullMethodName,
+		FullMethod: Shortener_Shorten_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortenerServer).Shrink(ctx, req.(*ShortenRequest))
+		return srv.(ShortenerServer).Shorten(ctx, req.(*ShortenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -146,8 +146,8 @@ var Shortener_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ShortenerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Shrink",
-			Handler:    _Shortener_Shrink_Handler,
+			MethodName: "Shorten",
+			Handler:    _Shortener_Shorten_Handler,
 		},
 		{
 			MethodName: "Resolve",

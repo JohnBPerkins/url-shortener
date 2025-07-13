@@ -19,6 +19,6 @@ message ResolveResponse {
 }
 
 service Shortener {
-	rpc Shrink (ShortenRequest) returns (ShortenResponse);
+	rpc Shorten (ShortenRequest) returns (ShortenResponse);
 	rpc Resolve (ResolveRequest) returns (ResolveResponse);
 }

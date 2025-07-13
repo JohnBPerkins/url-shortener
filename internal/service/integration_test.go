@@ -76,9 +76,9 @@ func TestMain(m *testing.M) {
 
 func TestIntegration_ShrinkThenResolve(t *testing.T) {
     // call Shrink
-    resp, err := svc.Shrink(ctx, &gen.ShortenRequest{Url: testURL})
+    resp, err := svc.Shorten(ctx, &gen.ShortenRequest{Url: testURL})
     if err != nil {
-        t.Fatalf("Shrink failed: %v", err)
+        t.Fatalf("Shorten failed: %v", err)
     }
     if len(resp.Code) != codeLength {
         t.Errorf("expected code length %d, got %d", codeLength, len(resp.Code))
@@ -96,9 +96,9 @@ func TestIntegration_ShrinkThenResolve(t *testing.T) {
 
 func TestIntegration_CacheHit(t *testing.T) {
     // Shrink once
-    resp, err := svc.Shrink(ctx, &gen.ShortenRequest{Url: testURL})
+    resp, err := svc.Shorten(ctx, &gen.ShortenRequest{Url: testURL})
     if err != nil {
-        t.Fatalf("Shrink failed: %v", err)
+        t.Fatalf("Shorten failed: %v", err)
     }
     code := resp.Code
 
