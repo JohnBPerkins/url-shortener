@@ -10,6 +10,10 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    
+    env:
+      DOCKERHUB_REPO=${{ secrets.DOCKERHUB_USERNAME }}/url-shortener
+      IMAGE_TAG=latest
 
     steps:
       - name: Checkout repository
@@ -54,7 +58,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker compose build
+          docker compose build app
+          docker tag url-shortener_app:latest $DOCKERHUB_REPO:$IMAGE_TAG
 
       - name: Bring up Docker Compose services
         env:
@@ -91,9 +96,4 @@ jobs:
 
       - name: Tag & push Docker image
         run: |
-          IMAGE_NAME=shortener
-          REPO=${{ secrets.DOCKERHUB_USERNAME }}/url-shortener
-          TAG=latest
-
-          docker tag $IMAGE_NAME:latest $REPO:$TAG
-          docker push $REPO:$TAG
+          docker push $DOCKERHUB_REPO:$IMAGE_TAG
