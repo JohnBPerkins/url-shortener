@@ -11,6 +11,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug secrets (be careful with passwords)
+        run: |
+          echo "POSTGRES_USER length: ${#POSTGRES_USER}"
+          echo "POSTGRES_PASSWORD length: ${#POSTGRES_PASSWORD}"  
+          echo "POSTGRES_DB length: ${#POSTGRES_DB}"
+          echo "POSTGRES_USER set: $([[ -z "$POSTGRES_USER" ]] && echo "NO" || echo "YES")"
+          echo "POSTGRES_PASSWORD set: $([[ -z "$POSTGRES_PASSWORD" ]] && echo "NO" || echo "YES")"
+          echo "POSTGRES_DB set: $([[ -z "$POSTGRES_DB" ]] && echo "NO" || echo "YES")"
+        env:
+          POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+          POSTGRES_DB: ${{secrets.POSTGRES_DB}}
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -76,7 +89,7 @@ jobs:
 
       - name: Run integration tests
         env:
-          DATABASE_DSN: postgres://shortener:password123@localhost:5432/shortener?sslmode=disable
+          DATABASE_DSN: postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}?sslmode=disable
           REDIS_ENDPOINT: localhost:6379
         run: |
           go test ./internal/service -tags=integration --timeout 5m
