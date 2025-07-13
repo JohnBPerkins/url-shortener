@@ -14,16 +14,16 @@ export const options = {
   scenarios: {
     rps_test: {
       executor: "constant-arrival-rate",
-      rate: 7500,
+      rate: 2500,
       timeUnit: "1s",
       duration: "30s",
-      preAllocatedVUs: 200,
-      maxVUs: 500,
+      preAllocatedVUs: 1000,
+      maxVUs: 2000,
     },
   },
   thresholds: {
-    "http_req_duration{name:shorten}": ["p(95)<200"],
-    "http_req_duration{name:resolve}": ["p(95)<200"]
+    "http_req_duration{name:shorten}": ["p(95)<50"],
+    "http_req_duration{name:resolve}": ["p(95)<50"]
   },
 };
 
@@ -42,10 +42,20 @@ export default function () {
     "has code field": (res) => !!res.json("code"),
   });
 
-  // Optional: hit the redirect endpoint too
   const code = res.json("code");
-  http.get(
+  res = http.get(
     `http://localhost:8080/${code}`,
-    {tags: {name: "resolve"}}
+    {
+      tags: {name: "resolve"},
+      redirects: 0
+    }
   );
+
+  check(res, {
+    "resolve status is 302": (res) => res.status === 302,
+    "Location header is correct": (r) => {
+      const loc = r.headers["Location"] || r.headers["location"];
+      return loc === longUrl;
+    },
+  });
 }
