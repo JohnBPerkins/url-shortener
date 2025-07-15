@@ -1,39 +1,10 @@
-# url-shortener
-## Build Plan
-
-### Day 3 – Resolve & Caching Layer
-- Add gRPC unary interceptors for structured logging
-
-### Day 5 – Terraform Infra & CI Integration
-- Flesh out Terraform modules:
-  - **network**: VPC, subnets, security groups  
-  - **database**: RDS Postgres  
-  - **cache**: ElastiCache Redis
-  - **compute**: ECS cluster, task definitions, IAM roles  
-- Add GitHub Actions steps:
-  1. `terraform fmt` → `terraform plan` (manual approval) → `terraform apply`
-
-### Day 6 – Deploy & Smoke Test
-- Run `terraform apply` to provision prod infra
-- Build & push Docker image to ECR
-- Deploy ECS service on Fargate with NLB for port 50051
-
-### Day 7 – Gateway, Monitoring & Polish
-- Provision CloudWatch alarms via Terraform
-- Finalize CI:
-  - On merge to `main`: push image, `terraform apply`
-- Write README sections:
-  - Architecture diagram
-  - Usage examples (Shrink, Resolve)
-
 # URL Shortener
 
 ---
 
 ## 1. Problem Statement & Goals
 
-* **Goal:** Provide planet‑scale URL redirection with <5 ms p95 latency.
-* **Non‑Goals:** 
+* **Goal:** Provide high‑scale URL redirection with <200 ms p95 latency.
 
 ## 2. High‑Level Architecture
 
@@ -43,10 +14,15 @@
 
 | Component             | Purpose                               | Tech Stack                       |
 | --------------------- | ------------------------------------- | -------------------------------- |
+| ALB  | TLS termination, HTTP → gRPC routing, health checks    |             AWS ALB              |
+|      ECS Service      |   Runs containerised Go application   |          AWS ECS Fargate         |
+|  Shortener container  | REST & gRPC API, slug generation, caching layer | Go 1.22, Docker        |
+|       PostgreSQL      |       Source‑of‑truth link store      |       Amazon RDS (Postgres)      |
+|         Redis         |     Hot‑path cache for code → URL     |        ElastiCache Redis 7       |
 
 ### 2.2 URL Generation & Collision Handling
 
-I opted for a hash + salting system to generate codes for the URLs. Each URL becomes an 8 character Base62 encoded string, giving about 218 trillion unique combinations. Codes have to be unique, so in the event that a collision occurs the code is regenerated with a different salt, ensuring each URL is able to generate a unique code. Users must specify a TTL for their shortened URL of 1 hour, 24 hours, or 168 hours (1 week). 
+Every long URL is normalised, salted, and hashed. The first 48 bits are then Base‑62 encoded, yielding an 8‑character slug (≈ 218 trillion combinations). If a collision is detected the service re‑salts and retries. Links expire after 24 h by default (TTL stored in expires_at).
 
 ## 3. API Design
 
@@ -62,27 +38,37 @@ I opted for a hash + salting system to generate codes for the URLs. Each URL bec
 All of the business logic is exposed over gRPC via the `shortener.Shortener` service. The full definition lives in [`proto/shortener.proto`](proto/shortener.proto):
 
 ```proto
-message ShortenRequest {
-  string url = 1;
-}
-
-message ShortenResponse {
-  string code = 1;
-}
-
-message ResolveRequest {
-  string code = 1;
-}
-
-message ResolveResponse {
-  string url = 1;
-}
-
+message ShortenRequest { string url = 1; }
+message ShortenResponse { string code = 1; }
+message ResolveRequest { string code = 1; }
+message ResolveResponse { string url = 1; }
 service Shortener {
   rpc Shorten(ShortenRequest) returns (ShortenResponse);
   rpc Resolve(ResolveRequest) returns (ResolveResponse);
 }
 ```
+
+# Shorten a long URL
+curl -X POST \
+     -H "Content-Type: application/json" \
+     -d '{"url":"https://example.com/some/very/long/path"}' \
+     https://<ALB‑DNS>/shorten
+# → {"code":"A7f3eG9b"}
+
+# Resolve / follow redirect
+curl -I https://<ALB‑DNS>/A7f3eG9b
+# HTTP/1.1 302 Found
+# Location: https://example.com/some/very/long/path
+
+# Shorten
+grpcurl -plaintext -d '{"url":"https://example.com/some/very/long/path"}' \
+  <ALB‑DNS>:50051 shortener.Shortener/Shorten
+# { "code": "A7f3eG9b" }
+
+# Resolve
+grpcurl -plaintext -d '{"code":"A7f3eG9b"}' \
+  <ALB‑DNS>:50051 shortener.Shortener/Resolve
+# { "url": "https://example.com/some/very/long/path" }
 
 ## 4. Data Model
 
@@ -95,24 +81,75 @@ CREATE TABLE Links (
 );
 ```
 
-## 5. Scaling & Capacity Planning
+## 5. Consistency & Caching Strategy
 
-## 6. Consistency & Caching Strategy
+1. POST /shorten
+  a. Begin DB txn → INSERT … ON CONFLICT.
+  b. Commit.
+  c. Async: SETEX code url TTL in Redis.
 
-## 7. Rate Limiting & Abuse Prevention
+2. GET /{code}
+  a. GET code from Redis.
+  b. Hit → 302 redirect.
+  c. Miss → query Postgres, then SETEX with residual TTL.
 
-## 8. Security Considerations
+# Properties
 
-## 9. Observability
+- Read‑after‑write consistency for practically all requests because the writer populates Redis before the first redirect occurs.
+- Expiry: Redis TTL = min(link_TTL, 24 h); nightly job purges expired DB rows (DELETE WHERE expires_at ≤ now()).
 
-slug_generation_collision_rate
+## 6. Observability
 
-## 10. Deployment & CI/CD
+Prometheus + Grafana
 
-## 11. Testing Strategy
+shortener_collision_rate
+resolve_cache_hits_total
+resolve_cache_misses_total
+resolve_cache_errors_total
 
-## 12. Failure Modes & Mitigations
+## 7. Deployment & CI/CD
 
----
+GitHub Actions is used for CI, where linting, unit testing, integration testing, and load testing is done. Afterwards passing the build and tests, the image is uploaded to Docker Hub for use in deployment later. Terraform is then used for provisioning infrastructure and deploying the application to AWS.
 
-*Last updated: 2025‑05‑29*
+I use GitHub Actions to provide a fully automated CI/CD pipeline:
+
+1. **On every push or PR** to `main`/`master`:
+   - **Lint** with `golangci-lint`  
+   - **Unit tests** (`go test -short`)  
+   - **Integration tests** (`go test -tags=integration` against a Docker-Compose stack)  
+   - **Load tests** with k6 (smoke-level RPS in CI)  
+
+2. **Build & tag**  
+   - `docker compose build app`  
+   - Re-tag the image as `mrgoosey/url-shortener:latest`  
+
+3. **Push**  
+   - Log in to Docker Hub using secrets  
+   - Push the already-tested image  
+
+4. **Terraform-driven deploy**  
+   - Plan & apply Terraform modules for VPC, RDS, ElastiCache, ECS, IAM, etc.  
+   - Point the ECS task definition at the newly pushed image tag  
+   - Perform a rolling update on the service  
+
+5. **Smoke checks**  
+   - After deployment, run a brief health-check suite (HTTP status, gRPC ping)  
+
+Secrets like database credentials and Docker Hub tokens are stored in GitHub Actions secrets. Terraform deployment is only done manually, but is triggered as a Github Actions workflow.
+
+## 8. Testing Strategy
+
+I cover three layers of testing:
+
+1. **Unit Tests**  
+   - Target all pure-Go logic in `internal/service` (URL validation, Base62 encoding, collision handling)   
+
+2. **Integration Tests**  
+   - Spin up a real Postgres + Redis + the Go server in Docker Compose  
+   - Drive the gRPC `Shorten` & `Resolve` methods end-to-end  
+   - Validate round-trips, error cases, cache-miss vs cache-hit behavior  
+
+3. **Load Tests**  
+   - Run k6 scripts against the live HTTP and gRPC endpoints  
+   - Measure latency histograms (p50, p95, p99) under realistic RPS  
+   - Gate only on broad smoke-level RPS in CI; full performance runs happen in a dedicated environment  
