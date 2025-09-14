@@ -33,15 +33,22 @@ func main() {
 	//init db
 	ctx := context.Background()
 	dsn := os.Getenv("DATABASE_DSN")
+	if dsn == "" {
+		dsn = "postgres://localhost:5432/urlshortener?sslmode=disable"
+	}
 	dbPool, err := db.NewPool(ctx, dsn)
 	if err != nil {
 		log.Fatalf("failed to connect to Postgres (%q): %v", dsn, err)
 	}
 
 	//init cache
+	redisAddr := os.Getenv("REDIS_ENDPOINT")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
 	cache := redis.NewClient(&redis.Options{
-        Addr:     os.Getenv("REDIS_ENDPOINT"),
-        Password: "", // if you’re using Redis AUTH
+        Addr:     redisAddr,
+        Password: os.Getenv("REDIS_PASSWORD"), // Railway provides this
         DB:       0,
     })
 
@@ -60,15 +67,31 @@ func main() {
 
 	// Set up HTTP routes
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/shorten", shrinkHandler)
+
+	// Add CORS middleware
+	corsHandler := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			next(w, r)
+		}
+	}
+
+	mux.HandleFunc("/api/shorten", corsHandler(shrinkHandler))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        path := r.URL.Path
-        if path == "/" || strings.HasPrefix(path, "/static/") {
-            http.FileServer(http.Dir("./web/")).ServeHTTP(w, r)
+        code := strings.Trim(r.URL.Path, "/")
+        if code == "" {
+            http.Error(w, "Not Found", http.StatusNotFound)
             return
         }
 
-        code := strings.Trim(path, "/")
         resp, err := svc.Resolve(r.Context(), &pb.ResolveRequest{Code: code})
         if err != nil {
             http.NotFound(w, r)
