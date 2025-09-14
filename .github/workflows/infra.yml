@@ -1,0 +1,40 @@
+name: Infra CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0   # needed if you tag or reference history
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
+      
+      - name: Terraform Init
+        run: terraform init -backend-config=backend-dev.conf
+      
+      - name: Terraform Format
+        run: terraform fmt -check
+      
+      - name: Terraform Validate
+        run: terraform validate
+      
+      - name: Terraform Plan
+        run: terraform plan -var-file=envs/dev.tfvars
+      
+      - name: Upload Plan (as PR comment)
+        uses: stefanzweifel/git-auto-commit-action@v4
+
+  terraform-apply:
+    needs: terraform-plan
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Terraform Apply
+        run: terraform apply -var-file=envs/prod.tfvars -auto-approve

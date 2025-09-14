@@ -1,2 +1,1 @@
-db_password="aaa"
-container_image=www
+db_password     = "2sa4beev1Ma9NaV&6K!v"

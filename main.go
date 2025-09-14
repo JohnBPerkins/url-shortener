@@ -32,9 +32,12 @@ func main() {
 
 	//init db
 	ctx := context.Background()
-	dsn := os.Getenv("DATABASE_DSN")
+	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		dsn = "postgres://localhost:5432/urlshortener?sslmode=disable"
+		dsn = os.Getenv("DATABASE_DSN") // fallback
+		if dsn == "" {
+			dsn = "postgres://localhost:5432/urlshortener?sslmode=disable"
+		}
 	}
 	dbPool, err := db.NewPool(ctx, dsn)
 	if err != nil {
@@ -42,8 +45,16 @@ func main() {
 	}
 
 	//init cache
+	redisURL := os.Getenv("REDIS_URL")
 	redisAddr := os.Getenv("REDIS_ENDPOINT")
-	if redisAddr == "" {
+	if redisURL != "" {
+		// Parse Railway Redis URL: redis://default:password@host:port
+		redisAddr = strings.TrimPrefix(redisURL, "redis://")
+		parts := strings.Split(redisAddr, "@")
+		if len(parts) == 2 {
+			redisAddr = parts[1]
+		}
+	} else if redisAddr == "" {
 		redisAddr = "localhost:6379"
 	}
 	cache := redis.NewClient(&redis.Options{
