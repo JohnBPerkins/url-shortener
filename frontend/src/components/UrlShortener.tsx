@@ -33,7 +33,7 @@ export function UrlShortener() {
 
     setIsLoading(true);
 
-    let finalUrl = url.match(/^https?:\/\//) ? url : `https://${url}`;
+    const finalUrl = url.match(/^https?:\/\//) ? url : `https://${url}`;
 
     try {
       const response = await fetch(`${config.apiBaseUrl}/api/shorten`, {
@@ -54,8 +54,8 @@ export function UrlShortener() {
         const errorData = data as ErrorResponse;
         setError(errorData.error || 'Failed to shorten URL');
       }
-    } catch (err) {
-      setError(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } catch (error) {
+      setError(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
