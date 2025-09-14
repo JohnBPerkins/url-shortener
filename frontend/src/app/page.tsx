@@ -1,7 +1,7 @@
 'use client';
 
 import { UrlShortener } from '@/components/UrlShortener';
-import { MetricsDashboard } from '@/components/MetricsDashboard';
+// import { MetricsDashboard } from '@/components/MetricsDashboard';
 
 export default function Home() {
   return (
@@ -56,7 +56,7 @@ export default function Home() {
 
           <div className="flex flex-col items-center gap-12">
             <UrlShortener />
-            <MetricsDashboard />
+            {/* <MetricsDashboard /> */}
           </div>
         </main>
       </div>
