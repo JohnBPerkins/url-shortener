@@ -33,13 +33,15 @@ export function UrlShortener() {
 
     setIsLoading(true);
 
+    let finalUrl = url.match(/^https?:\/\//) ? url : `https://${url}`;
+
     try {
       const response = await fetch(`${config.apiBaseUrl}/api/shorten`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url: finalUrl }),
       });
 
       const data = await response.json();
