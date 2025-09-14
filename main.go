@@ -130,6 +130,7 @@ func main() {
 	}
 
 	mux.HandleFunc("/api/shorten", corsHandler(shrinkHandler))
+	mux.Handle("/metrics", promhttp.Handler())
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         code := strings.Trim(r.URL.Path, "/")
         if code == "" {
@@ -146,12 +147,6 @@ func main() {
         http.Redirect(w, r, resp.GetUrl(), http.StatusFound)
     })
 
-    go func() {
-        metricsMux := http.NewServeMux()
-        metricsMux.Handle("/metrics", promhttp.Handler())
-        log.Println("▶ metrics listening on :9090/metrics")
-        log.Fatal(http.ListenAndServe(":9090", metricsMux))
-    }()
 
 	go func() {
         log.Println("▶ HTTP API listening on :8080")
