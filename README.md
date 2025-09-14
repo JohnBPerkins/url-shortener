@@ -48,27 +48,38 @@ service Shortener {
 }
 ```
 
-# Shorten a long URL
+## Usage
+
+### Shorten a URL over HTTP
+
+```bash
 curl -X POST \
      -H "Content-Type: application/json" \
      -d '{"url":"https://example.com/some/very/long/path"}' \
      https://<ALB‑DNS>/shorten
 # → {"code":"A7f3eG9b"}
+```
 
-# Resolve / follow redirect
+### Resolve / follow redirect
+```bash
 curl -I https://<ALB‑DNS>/A7f3eG9b
 # HTTP/1.1 302 Found
 # Location: https://example.com/some/very/long/path
+```
 
-# Shorten
+### Shorten
+```bash
 grpcurl -plaintext -d '{"url":"https://example.com/some/very/long/path"}' \
   <ALB‑DNS>:50051 shortener.Shortener/Shorten
 # { "code": "A7f3eG9b" }
+```
 
-# Resolve
+### Resolve
+```bash
 grpcurl -plaintext -d '{"code":"A7f3eG9b"}' \
   <ALB‑DNS>:50051 shortener.Shortener/Resolve
 # { "url": "https://example.com/some/very/long/path" }
+```
 
 ## 4. Data Model
 
@@ -93,19 +104,23 @@ CREATE TABLE Links (
   b. Hit → 302 redirect.
   c. Miss → query Postgres, then SETEX with residual TTL.
 
-# Properties
+### Properties
 
 - Read‑after‑write consistency for practically all requests because the writer populates Redis before the first redirect occurs.
 - Expiry: Redis TTL = min(link_TTL, 24 h); nightly job purges expired DB rows (DELETE WHERE expires_at ≤ now()).
 
 ## 6. Observability
 
-Prometheus + Grafana
+The URL Shortener exposes Prometheus metrics on the `/metrics` endpoint. I scraped these metrics with Prometheus and built dashboards in Grafana to monitor service health and performance.
 
-shortener_collision_rate
-resolve_cache_hits_total
-resolve_cache_misses_total
-resolve_cache_errors_total
+- shortener_collision_rate
+  - Tracks the rate of hash collisions encountered when generating new codes.   
+- resolve_cache_hits_total
+  - Cumulative count of successful cache lookups during code resolution.
+- resolve_cache_misses_total
+  - Cumulative count of cache misses when resolving codes.
+- resolve_cache_errors_total
+  - Total number of errors encountered in the resolve cache layer.
 
 ## 7. Deployment & CI/CD
 
