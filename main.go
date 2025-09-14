@@ -32,12 +32,22 @@ func main() {
 
 	//init db
 	ctx := context.Background()
+
+	// Log available env vars for debugging
+	log.Printf("DATABASE_URL: %q", os.Getenv("DATABASE_URL"))
+	log.Printf("DATABASE_DSN: %q", os.Getenv("DATABASE_DSN"))
+	log.Printf("PGDATABASE: %q", os.Getenv("PGDATABASE"))
+	log.Printf("DATABASE_PRIVATE_URL: %q", os.Getenv("DATABASE_PRIVATE_URL"))
+
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
+		dsn = os.Getenv("DATABASE_PRIVATE_URL") // Railway private URL
+	}
+	if dsn == "" {
 		dsn = os.Getenv("DATABASE_DSN") // fallback
-		if dsn == "" {
-			dsn = "postgres://localhost:5432/urlshortener?sslmode=disable"
-		}
+	}
+	if dsn == "" {
+		log.Fatal("No database connection string found in environment variables")
 	}
 	dbPool, err := db.NewPool(ctx, dsn)
 	if err != nil {
@@ -45,21 +55,45 @@ func main() {
 	}
 
 	//init cache
+	log.Printf("REDIS_URL: %q", os.Getenv("REDIS_URL"))
+	log.Printf("REDIS_PRIVATE_URL: %q", os.Getenv("REDIS_PRIVATE_URL"))
+	log.Printf("REDIS_ENDPOINT: %q", os.Getenv("REDIS_ENDPOINT"))
+
 	redisURL := os.Getenv("REDIS_URL")
-	redisAddr := os.Getenv("REDIS_ENDPOINT")
+	if redisURL == "" {
+		redisURL = os.Getenv("REDIS_PRIVATE_URL")
+	}
+
+	var redisAddr, redisPassword string
 	if redisURL != "" {
 		// Parse Railway Redis URL: redis://default:password@host:port
-		redisAddr = strings.TrimPrefix(redisURL, "redis://")
-		parts := strings.Split(redisAddr, "@")
-		if len(parts) == 2 {
-			redisAddr = parts[1]
+		if strings.HasPrefix(redisURL, "redis://") {
+			redisURL = strings.TrimPrefix(redisURL, "redis://")
+			if strings.Contains(redisURL, "@") {
+				parts := strings.Split(redisURL, "@")
+				if len(parts) == 2 {
+					credParts := strings.Split(parts[0], ":")
+					if len(credParts) == 2 {
+						redisPassword = credParts[1]
+					}
+					redisAddr = parts[1]
+				}
+			} else {
+				redisAddr = redisURL
+			}
 		}
-	} else if redisAddr == "" {
-		redisAddr = "localhost:6379"
+	} else {
+		redisAddr = os.Getenv("REDIS_ENDPOINT")
+		redisPassword = os.Getenv("REDIS_PASSWORD")
 	}
+
+	if redisAddr == "" {
+		log.Fatal("No Redis connection string found in environment variables")
+	}
+
 	cache := redis.NewClient(&redis.Options{
         Addr:     redisAddr,
-        Password: os.Getenv("REDIS_PASSWORD"), // Railway provides this
+        Password: redisPassword,
         DB:       0,
     })
 
