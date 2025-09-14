@@ -11,6 +11,8 @@ interface ErrorResponse {
   error: string;
 }
 
+const urlRegex = /^(?:https?:\/\/)?[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.[A-Za-z]{2,6}(?::\d{1,5})?(?:[/?#][^\s]*)?$/;
+
 export function UrlShortener() {
   const [url, setUrl] = useState('');
   const [shortenedUrl, setShortenedUrl] = useState('');
@@ -23,6 +25,12 @@ export function UrlShortener() {
 
     setShowResult(false);
     setError('');
+
+    if (!urlRegex.test(url)) {
+      setError('Please enter a valid URL (e.g., example.com or https://example.com)');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -81,12 +89,12 @@ export function UrlShortener() {
             Original URL
           </label>
           <input
-            type="url"
+            type="text"
             id="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className="w-full p-4 border-2 border-gray-200 rounded-xl text-base transition-all duration-300 bg-white text-gray-900 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:-translate-y-0.5"
-            placeholder="https://example.com/very-long-url-that-needs-shortening"
+            placeholder="example.com/very-long-url-that-needs-shortening"
             required
             suppressHydrationWarning={true}
           />
@@ -105,7 +113,7 @@ export function UrlShortener() {
         <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border-l-4 border-green-500 animate-in slide-in-from-bottom-4 duration-500">
           <div className="font-semibold text-green-700 mb-2">Your shortened URL:</div>
           <div className="bg-white p-4 rounded-lg border border-green-200 font-mono break-all flex justify-between items-center gap-4">
-            <span>{shortenedUrl}</span>
+            <span className="text-gray-900 font-semibold">{shortenedUrl}</span>
             <button
               onClick={copyToClipboard}
               className="bg-green-500 text-white border-none px-4 py-2 rounded-md cursor-pointer text-sm transition-all duration-300 hover:bg-green-600 min-w-[60px]"
