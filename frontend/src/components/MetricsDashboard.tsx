@@ -22,7 +22,7 @@ export function MetricsDashboard() {
       </div>
 
       {/* Time Series Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
           <iframe
             src={`${config.grafanaUrl}/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/url-shortener-metrics?orgId=1&from=now-15m&to=now&timezone=browser&panelId=1&refresh=5s&__feature.dashboardSceneSolo=true`}
@@ -62,10 +62,10 @@ export function MetricsDashboard() {
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Statistics Panels */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20">
           <iframe
             src={`${config.grafanaUrl}/d-solo/ac5564a1-fbfc-4f71-9e4a-ae1cb25025f1/url-shortener-metrics?orgId=1&from=now-15m&to=now&timezone=browser&panelId=5&refresh=5s&__feature.dashboardSceneSolo=true`}
@@ -105,7 +105,7 @@ export function MetricsDashboard() {
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
