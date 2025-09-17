@@ -6,3 +6,6 @@ terraform.tfstate.backup
 
 .env
 .vercel
+
+CLAUDE.md
+.claude
