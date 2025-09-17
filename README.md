@@ -10,8 +10,6 @@
 
 ## 2. High‑Level Architecture
 
-*(Insert a real diagram here)*
-
 ### 2.1 Components
 
 | Component             | Purpose                               | Tech Stack                       |
