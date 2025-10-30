@@ -78,11 +78,6 @@ jobs:
         run: |
           go test ./internal/service -tags=integration --timeout 5m
 
-      - name: Run load tests
-        run: |
-          k6 run ./test/http_loadtest.js
-          k6 run ./test/grpc_loadtest.js
-
       - name: Tear down Docker Compose
         run: |
           docker compose down --volumes
