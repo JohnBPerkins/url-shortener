@@ -106,6 +106,7 @@ func main() {
 	)
 
 	shrinkHandler := web.NewShrinkHandler(svc)
+	resolveHandler := web.NewResolveHandler(svc)
 
 	pb.RegisterShortenerServer(gRpcServer, svc)
 	grpc_prom.EnableHandlingTimeHistogram()
@@ -131,21 +132,7 @@ func main() {
 
 	mux.HandleFunc("/api/shorten", corsHandler(shrinkHandler))
 	mux.Handle("/metrics", promhttp.Handler())
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        code := strings.Trim(r.URL.Path, "/")
-        if code == "" {
-            http.Error(w, "Not Found", http.StatusNotFound)
-            return
-        }
-
-        resp, err := svc.Resolve(r.Context(), &pb.ResolveRequest{Code: code})
-        if err != nil {
-            http.NotFound(w, r)
-            return
-        }
-
-        http.Redirect(w, r, resp.GetUrl(), http.StatusFound)
-    })
+	mux.HandleFunc("/", resolveHandler)
 
 
 	go func() {

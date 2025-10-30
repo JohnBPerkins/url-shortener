@@ -81,6 +81,20 @@ func NewShrinkHandler(svc pb.ShortenerServer) http.HandlerFunc {
 
 func NewResolveHandler(svc pb.ShortenerServer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		code := r.URL.Path[1:] // Strip leading "/"
 
+		if code == "" {
+			http.Error(w, "Not Found", http.StatusNotFound)
+			return
+		}
+
+		grpcReq := &pb.ResolveRequest{Code: code}
+		grpcResp, err := svc.Resolve(r.Context(), grpcReq)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+
+		http.Redirect(w, r, grpcResp.GetUrl(), http.StatusFound)
 	}
 }
