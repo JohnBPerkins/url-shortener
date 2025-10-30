@@ -12,8 +12,6 @@ func NewPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
 		return nil, err
 	}
 
-	// With 3 Railway instances: 3 × 15 = 45 connections (under 60 limit)
-	// With 1 instance: 15 connections is plenty
 	config.MaxConns = 15
 
 	return pgxpool.ConnectConfig(ctx, config)
