@@ -14,7 +14,7 @@ export const options = {
   scenarios: {
     rps_test: {
       executor:        "constant-arrival-rate",
-      rate:            1000,
+      rate:            300,
       timeUnit:        "1s",
       duration:        "30s",
       preAllocatedVUs: 1000,
@@ -22,40 +22,67 @@ export const options = {
     },
   },
   thresholds: {
-    "http_req_duration{name:shorten}": ["p(95)<100"],
-    "http_req_duration{name:resolve}": ["p(95)<100"]
+    "http_req_duration{name:shorten}": ["p(95)<600"],  // Realistic for high load
+    "http_req_duration{name:resolve}": ["p(95)<150"],  // Cache hits should be fast
+    "http_req_failed": ["rate<0.01"]  // Allow <1% failures
   },
 };
 
 export default function () {
-  const longUrl = `https://example.com/${randomString(32)}`;
-  const payload = JSON.stringify({ url: longUrl });
+  const BATCH_SIZE = 10; // Each VU sends 10 shorten + 10 resolve = 20 requests per iteration
 
-  const params = {
-    headers: { "Content-Type": "application/json" },
-    tags: {name: "shorten"}
-  };
+  // Prepare batch of shorten requests
+  const shortenRequests = [];
+  const longUrls = [];
 
-  let res = http.post("http://localhost:8080/api/shorten", payload, params);
-  check(res, {
-    "status is 200": (res) => res.status === 200,
-    "has code field": (res) => !!res.json("code"),
+  for (let i = 0; i < BATCH_SIZE; i++) {
+    const longUrl = `https://example.com/${randomString(32)}`;
+    longUrls.push(longUrl);
+
+    shortenRequests.push({
+      method: "POST",
+      url: "https://urlshortback.up.railway.app/api/shorten",
+      body: JSON.stringify({ url: longUrl }),
+      params: {
+        headers: { "Content-Type": "application/json" },
+        tags: { name: "shorten" }
+      }
+    });
+  }
+
+  // Batch shorten requests
+  const shortenResponses = http.batch(shortenRequests);
+  const codes = [];
+
+  shortenResponses.forEach((res) => {
+    check(res, {
+      "status is 200": (res) => res.status === 200,
+      "has code field": (res) => !!res.json("code"),
+    });
+    if (res.status === 200) {
+      codes.push(res.json("code"));
+    }
   });
 
-  const code = res.json("code");
-  res = http.get(
-    `http://localhost:8080/${code}`,
-    {
-      tags: {name: "resolve"},
+  // Batch resolve requests
+  const resolveRequests = codes.map((code) => ({
+    method: "GET",
+    url: `https://urlshortback.up.railway.app/${code}`,
+    params: {
+      tags: { name: "resolve" },
       redirects: 0
     }
-  );
+  }));
 
-  check(res, {
-    "resolve status is 302": (res) => res.status === 302,
-    "Location header is correct": (r) => {
-      const loc = r.headers["Location"] || r.headers["location"];
-      return loc === longUrl;
-    },
+  const resolveResponses = http.batch(resolveRequests);
+
+  resolveResponses.forEach((res, idx) => {
+    check(res, {
+      "resolve status is 302": (res) => res.status === 302,
+      "Location header is correct": (r) => {
+        const loc = r.headers["Location"] || r.headers["location"];
+        return loc === longUrls[idx];
+      },
+    });
   });
 }

@@ -51,31 +51,24 @@ func TestMain(m *testing.M) {
         os.Exit(1)
     }
 
-    // 3) Connect Redis
     rdb := redis.NewClient(&redis.Options{
         Addr: redisAddr,
     })
     defer rdb.Close()
-    // flush any old data
+
     if err := rdb.FlushDB(ctx).Err(); err != nil {
         fmt.Fprintf(os.Stderr, "failed to flush Redis: %v\n", err)
         os.Exit(1)
     }
 
-    // 4) Init Sonyflake
     sf := flake.NewSonyflake()
-
-    // 5) Build the service under test
     svc = NewShortenerService(pgPool, rdb, sf)
-
-    // 6) Run tests
     code := m.Run()
 
     os.Exit(code)
 }
 
 func TestIntegration_ShrinkThenResolve(t *testing.T) {
-    // call Shrink
     resp, err := svc.Shorten(ctx, &gen.ShortenRequest{Url: testURL})
     if err != nil {
         t.Fatalf("Shorten failed: %v", err)
@@ -84,7 +77,6 @@ func TestIntegration_ShrinkThenResolve(t *testing.T) {
         t.Errorf("expected code length %d, got %d", codeLength, len(resp.Code))
     }
 
-    // call Resolve
     res2, err := svc.Resolve(ctx, &gen.ResolveRequest{Code: resp.Code})
     if err != nil {
         t.Fatalf("Resolve failed: %v", err)
@@ -95,21 +87,18 @@ func TestIntegration_ShrinkThenResolve(t *testing.T) {
 }
 
 func TestIntegration_CacheHit(t *testing.T) {
-    // Shrink once
     resp, err := svc.Shorten(ctx, &gen.ShortenRequest{Url: testURL})
     if err != nil {
         t.Fatalf("Shorten failed: %v", err)
     }
     code := resp.Code
 
-    // First Resolve should populate Redis
     _, err = svc.Resolve(ctx, &gen.ResolveRequest{Code: code})
     if err != nil {
         t.Fatalf("first Resolve failed: %v", err)
     }
 
-    // Directly inspect Redis: it should have a key
-    rdb := svc.(*ShortenerService).cache // type-assert to grab the redis.Client
+    rdb := svc.(*ShortenerService).cache
     cached, err := rdb.Get(ctx, code).Result()
     if err != nil {
         t.Fatalf("expected cache to contain %s: %v", code, err)
