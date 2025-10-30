@@ -22,7 +22,7 @@
 
 ### 2.2 URL Generation & Collision Handling
 
-Every long URL is normalised, salted, and hashed. The first 48 bits are then Base‑62 encoded, yielding an 8‑character slug (≈ 218 trillion combinations). If a collision is detected the service re‑salts and retries. Links expire after 24 h by default (TTL stored in expires_at).
+Uses Sonyflake to generate distributed 64-bit IDs, which are Base62-encoded and truncated to 8 characters (~218 trillion combinations). If a collision occurs (detected via UNIQUE constraint), the service retries with a new ID. Links expire after 24 h by default (TTL stored in expires_at).
 
 ## 3. API Design
 
@@ -30,7 +30,7 @@ Every long URL is normalised, salted, and hashed. The first 48 bits are then Ba
 
 | Method | Path            | Resp            | Notes       |
 | ------ | --------------- | --------------- | ----------- |
-|  POST  |   `/shorten`    | `{code: string}`| Accepts JSON `{ url: "..."}` |
+|  POST  |   `api/shorten`    | `{code: string}`| Accepts JSON `{ url: "..."}` |
 |  GET   |    `/{code}`    | Redirect (302)  | Looks up code and 302→original URL |
 
 ### 3.2 Internal gRPC Services
@@ -56,7 +56,7 @@ service Shortener {
 curl -X POST \
      -H "Content-Type: application/json" \
      -d '{"url":"https://example.com/some/very/long/path"}' \
-     https://<ALB‑DNS>/shorten
+     https://<ALB‑DNS>/api/shorten
 # → {"code":"A7f3eG9b"}
 ```
 
@@ -85,19 +85,20 @@ grpcurl -plaintext -d '{"code":"A7f3eG9b"}' \
 
 ```
 CREATE TABLE Links (
-  code VARCHAR PK,
-  long_url TEXT,
-  created_at TIMESTAMP,
-  expires_at TIMESTAMP
+  code TEXT PRIMARY KEY,
+  long_url TEXT NOT NULL,
+  created_at TIMESTAMPZ NOT NULL,
+  expires_at TIMESTAMP NOT NULL DEFAULT now() + INTERVAL '24 hours'
 );
 ```
 
 ## 5. Consistency & Caching Strategy
 
-1. POST /shorten
-  a. Begin DB txn → INSERT … ON CONFLICT.
-  b. Commit.
-  c. Async: SETEX code url TTL in Redis.
+1. POST /api/shorten
+  a. Generate unique code using Sonyflake.
+  b. INSERT into Postgres with UNIQUE cosntraint on code.
+  c. On success: SET code in Redis (24h TTL, non-critical).
+  c. Return short code.
 
 2. GET /{code}
   a. GET code from Redis.
@@ -113,14 +114,16 @@ CREATE TABLE Links (
 
 The URL Shortener exposes Prometheus metrics on the `/metrics` endpoint. I scraped these metrics with Prometheus and built dashboards in Grafana to monitor service health and performance.
 
-- shortener_collision_rate
-  - Tracks the rate of hash collisions encountered when generating new codes.   
+<!-- - shortener_collision_rate
+  - Tracks the rate of hash collisions encountered when generating new codes.    -->
 - resolve_cache_hits_total
   - Cumulative count of successful cache lookups during code resolution.
 - resolve_cache_misses_total
   - Cumulative count of cache misses when resolving codes.
 - resolve_cache_errors_total
   - Total number of errors encountered in the resolve cache layer.
+- resolve_duration_seconds
+  - Number of seconds it takes to resolve a code.
 
 ## 7. Deployment & CI/CD
 
