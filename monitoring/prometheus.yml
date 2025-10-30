@@ -12,4 +12,4 @@ scrape_configs:
     scrape_interval: 5s
     scheme: https
     static_configs:
-      - targets: ["url-shortener-production-ba38.up.railway.app"]
+      - targets: ["urlshortback.up.railway.app:8080"]
