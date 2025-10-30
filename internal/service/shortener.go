@@ -99,11 +99,9 @@ func (s *ShortenerService) Shorten(ctx context.Context, req *gen.ShortenRequest)
 			code, req.GetUrl(),
 		)
 		if err == nil {
-            go func () {
-                if err := s.cache.Set(ctx, code, req.GetUrl(), 24*time.Hour).Err(); err != nil {
-                    log.Printf("shortener.go: warning: redis SET failed for code=%s url=%q: %v", code, req.GetUrl(), err)
-                }
-            }()
+			if err := s.cache.Set(ctx, code, req.GetUrl(), 24*time.Hour).Err(); err != nil {
+                log.Printf("shortener.go: warning: redis SET failed for code=%s url=%q: %v", code, req.GetUrl(), err)
+            }
 			return &gen.ShortenResponse{Code: code}, nil
 		}
 		if isUniqueViolation(err) {
